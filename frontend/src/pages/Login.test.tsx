@@ -1,0 +1,3 @@
+import {render,screen} from '@testing-library/react';import userEvent from '@testing-library/user-event';import {MemoryRouter} from 'react-router-dom';import {describe,it,expect,vi} from 'vitest';import {Login} from './Login';
+const login=vi.fn();vi.mock('../context/AuthContext',()=>({useAuth:()=>({login,register:vi.fn(),logout:vi.fn(),user:null})}));
+describe('Login',()=>it('submits credentials',async()=>{const user=userEvent.setup();render(<MemoryRouter><Login/></MemoryRouter>);await user.type(screen.getByLabelText('Email'),'guest@test.com');await user.type(screen.getByLabelText('Password'),'secret');await user.click(screen.getByRole('button',{name:'Login'}));expect(login).toHaveBeenCalledWith('guest@test.com','secret')}));

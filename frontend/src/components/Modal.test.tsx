@@ -1,0 +1,2 @@
+import {render,screen} from '@testing-library/react';import userEvent from '@testing-library/user-event';import {describe,it,expect,vi} from 'vitest';import {Modal} from './Modal';
+describe('Modal',()=>it('renders content and closes',async()=>{const onClose=vi.fn();const user=userEvent.setup();render(<Modal title="Review" onClose={onClose}><p>Content</p></Modal>);expect(screen.getByRole('dialog')).toBeInTheDocument();expect(screen.getByText('Content')).toBeInTheDocument();await user.click(screen.getByRole('button',{name:'Close'}));expect(onClose).toHaveBeenCalled()}));
