@@ -21,7 +21,7 @@ export function HotelCard({ hotel, rooms, checkIn, checkOut }: Props) {
 
   return (
     <article className="card hotel-card">
-      <img src={hotel.coverImageUrl} alt={`${hotel.name} cover`} onError={(e) => { e.currentTarget.src = '/hotel-placeholder.svg'; }} />
+      <img src={hotel.coverImageUrl || '/hotel-placeholder.svg'} alt={`${hotel.name} cover`} loading="lazy" onError={(e) => { e.currentTarget.src = '/hotel-placeholder.svg'; }} />
       <div className="card-body">
         <div className="stars" aria-label={`${hotel.starRating} star hotel`}>
           {'★'.repeat(hotel.starRating)}

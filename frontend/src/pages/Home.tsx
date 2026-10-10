@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Hotel, Room } from '../types';
@@ -13,12 +13,15 @@ export function Home() {
   const [rooms, setRooms] = useState<Record<string, Room[]>>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const latestRequest = useRef(0);
 
   const loadHotels = useCallback(async (searchCity: string, inDate: string, outDate: string) => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     setError('');
     try {
       const foundHotels = await api.getHotels(searchCity.trim());
+      if (requestId !== latestRequest.current) return;
       setHotels(foundHotels);
       if (inDate && outDate && inDate < outDate) {
         const results = await Promise.all(foundHotels.map(async (hotel) => {
@@ -29,28 +32,34 @@ export function Home() {
             return [hotel.id, []] as const;
           }
         }));
-        setRooms(Object.fromEntries(results));
+        if (requestId === latestRequest.current) setRooms(Object.fromEntries(results));
       } else {
         setRooms({});
       }
     } catch (err) {
+      if (requestId !== latestRequest.current) return;
       setHotels([]);
       setRooms({});
       setError(err instanceof Error ? err.message : 'Could not load hotels. Check that the backend is running.');
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
   }, []);
 
+  // Keep URL-driven searches (shared links/back-forward navigation) in sync with the form.
   useEffect(() => {
-    const searchCity = params.get('city') ?? 'Goa';
-    const inDate = params.get('checkIn') ?? '';
-    const outDate = params.get('checkOut') ?? '';
-    setCity(searchCity);
-    setCheckIn(inDate);
-    setCheckOut(outDate);
-    void loadHotels(searchCity, inDate, outDate);
-  }, [params, loadHotels]);
+    setCity(params.get('city') ?? 'Goa');
+    setCheckIn(params.get('checkIn') ?? '');
+    setCheckOut(params.get('checkOut') ?? '');
+  }, [params]);
+
+  // Search as the destination is typed, with a short debounce to avoid a request per keystroke.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadHotels(city, checkIn, checkOut);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [city, checkIn, checkOut, loadHotels]);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

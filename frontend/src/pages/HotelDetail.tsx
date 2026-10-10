@@ -81,7 +81,7 @@ export function HotelDetail() {
 
   return (
     <section>
-      <img className="detail-cover" src={hotel.coverImageUrl || '/hotel-placeholder.svg'} alt={`${hotel.name} cover`} onError={(event) => { event.currentTarget.src = '/hotel-placeholder.svg'; }} />
+      <div className="detail-gallery"><img className="detail-cover" src={hotel.coverImageUrl || '/hotel-placeholder.svg'} alt={`${hotel.name} cover`} onError={(event) => { event.currentTarget.src = '/hotel-placeholder.svg'; }} />{(hotel.imageUrls ?? []).filter((url) => url && url !== hotel.coverImageUrl).slice(0, 4).map((url, index) => <img className="detail-gallery-thumb" key={`${url}-${index}`} src={url} alt={`${hotel.name} gallery ${index + 1}`} onError={(event) => { event.currentTarget.src = '/hotel-placeholder.svg'; }} />)}</div>
       <div className="detail-header"><div><div className="stars">{'★'.repeat(hotel.starRating)}</div><h1>{hotel.name}</h1><p className="muted">{hotel.city} · {hotel.description}</p></div></div>
       <div className="two-col"><div><h2>Amenities</h2><div className="chips">{hotel.amenities.map((amenity) => <span key={amenity}>{amenity}</span>)}</div></div><div className="date-summary"><strong>Selected dates</strong><span>{checkIn || '—'} → {checkOut || '—'}</span></div></div>
       {error && <div className="alert error" role="alert">{error}</div>}
